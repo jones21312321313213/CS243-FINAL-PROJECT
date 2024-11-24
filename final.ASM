@@ -47,6 +47,31 @@
                 db '          .--------------:          ',13,10
                 db '          ................          ',13,10, '$'
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    list db'                   _                 ____     _____   ', 13, 10
+        db '                  |"|        ___    / __"| u |_ " _|  ', 13, 10
+        db '                U | | u     |_"_|  <\___ \/    | |    ', 13, 10
+        db '                 \| |/__     | |    u___) |   /| |\   ', 13, 10
+        db '                  |_____|  U/| |\u  |____/>> u |_|U   ', 13, 10
+        db '                  //  \\.-,_|___|_,-.)(  (__)_// \\_  ', 13, 10
+        db '                 (_")("_)\_)-'' ''-(_/(__)    (__) (__) ', 13, 10, '$'
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+      is   db '                               ____                                       ', 13, 10
+          db '                       ___    / __"| u                                  ', 13, 10
+          db '                      |_"_|  <\___ \/                                   ', 13, 10
+          db '                       | |    u___) |                                   ', 13, 10
+          db '                     U/| |\u  |____/>>                                  ', 13, 10
+          db '                  .-,_|___|_,-.)(  (__)                                 ', 13, 10
+          db '                   \_)-'' ''-(_/(__)                                    ', 13, 10, '$'
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;   
+    emptyMSG    db '            U _____ u  __  __    ____    _____   __   __       ', 13, 10
+                db '            \| ___"|/U|'' \/ ''uU|  _"\ u|_ " _|  \ \ / /     ', 13, 10
+                db '             |  _|"  \| |\/| |/\| |_) |/  | |     \ V /      ', 13, 10
+                db '             | |___   | |  | |  |  __/   /| |\   U_|"|_u     ', 13, 10
+                db '             |_____|  |_|  |_|  |_|     u |_|U     |_|       ', 13, 10
+                db '             <<   >> <<,-,,-.   ||>>_   _// \\_.-,//|(_      ', 13, 10
+                db '            (__) (__) (./  \.) (__)__) (__) (__)\_) (__)     ', 13, 10, '$'    
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
   online db ' Grocery Items Inventory System $'
   programmer db 0ah, ' Programmer: JOSHUA D. ARCO $'
   date db 0ah, ' Date(Written): NOV. 22, 2024$'
@@ -56,6 +81,7 @@
   createNewRecord db '3.Create new Inventory                                        ',13,10,'$';
   updateExistingRecord db '4.Update existing Inventory                                  ',13,10,'$';
   deleteExistingRecord db '5.Delete existing Inventory                                  ',13,10,'$';
+  viewExistingRecord db '6.View existing Inventory                                      ',13,10,'$';
   space db '                      $'
 
   choice db 'Enter your choice: $'
@@ -81,7 +107,7 @@
   errorInvalid  DB 'ERROR! Invalid choice!                                                        $',13,10
   pressEnter DB 'PRESS ENTER TO CONTINUE!                                                         $',13,10
   pressBACK DB 'PRESS ANY KEYS TO GO BACK TO MAIN MENU :)$'
-
+  isEmpty DB 'LIST/INVENTORY IS EMPTY! PLEASE ADD SOME$'
  ; Variables;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                 DB ?
 
@@ -163,6 +189,8 @@ loopMenu:
   JZ updateExistingRecordCALL
   CMP AL, '5'
   JZ deleteExistingRecordCALL
+  CMP AL, '6'
+  JZ viewExistingRecordCALL
 
   ; Invalid choice
   MOV DL, 0DH
@@ -245,6 +273,9 @@ deleteExistingRecordCALL:
   MOV AH, 4Ch
   INT 21h
 
+viewExistingRecordCALL:
+    CALL CLEAR_SCREEN
+    CALL viewExistingRecordFunction
 
 createNewFunction:
     mov ah, 09h
@@ -302,6 +333,13 @@ createNewFunction:
     int 21h
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     CALL NEW_LINE
+    CALL NEW_LINE
+    
+    mov ah, 09h
+    mov bh, 0
+    mov bl, 0B4h   ; BG,FG
+    mov cx, 41 ; Length
+    int 10h
 
     MOV AH, 09h
     LEA DX, pressBACK
@@ -317,6 +355,193 @@ createNewFunction:
     JMP loopMenu   ; If Enter was pressed, go back to the menu
     JMP $         ; If not, keep waiting
 
+
+viewExistingRecordFunction:
+    lea si, firstItem + 1  ; Point to the actual input (input buffer starts at +1)
+    mov al, [si]           ; Get the length of the string (first byte)
+    cmp al, 0              ; Check if the length is zero
+    jz kungEmpty           ; If zero, jump to the "kungEmpty" label
+
+    ; If not empty, display items
+    jmp ifNotEmpty          ; Jump to handle the non-empty case
+
+kungEmpty:
+    ; If the string is empty, display a message
+    mov ah, 09h
+    lea dx, list
+    int 21h  ; Print the message
+
+    mov ah, 09h
+    lea dx, is
+    int 21h  ; Print the message
+
+    mov ah, 09h
+    lea dx, emptyMSG
+    int 21h  ; Print the message
+
+    CALL NEW_LINE
+
+    mov ah, 09h
+    lea dx, isEmpty
+    int 21h  ; Print the message
+
+    CALL NEW_LINE
+
+    MOV AH, 09h
+    LEA DX, pressBACK
+    INT 21h
+
+    ; Wait for user to press Enter (check for Enter key: ASCII value 0Dh)
+    MOV AH, 01h   ; Function to read a character from input
+    INT 21h
+
+    ; Check if Enter (0Dh) was pressed, if not, continue to wait
+    CMP AL, 0Dh
+    CALL CLEAR_SCREEN
+    JMP loopMenu   ; If Enter was pressed, go back to the menu
+    JMP $           ; If not, keep waiting
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+ifNotEmpty:
+    ; Display the items if they are not empty
+    ; Output firstItem
+    mov ah, 06h
+    xor cl, cl
+    xor ax, ax
+
+    mov ah, 06h
+    mov ch, 1
+    mov cl, 2
+    mov dh, 1
+    mov dl, 40
+    mov bh, 70h
+    int 10h
+
+    lea dx, outFirstItem
+    mov ah, 09h
+    int 21h
+
+    xor bx, bx
+    mov bl, firstItem[1]
+    mov firstItem[bx+2], '$'
+    lea dx, firstItem + 2
+    mov ah, 09h
+    int 21h
+
+    ; Output secondItem
+    mov ah, 06h
+    xor cl, cl
+    xor ax, ax
+
+    mov ah, 06h
+    mov ch, 2
+    mov cl, 2
+    mov dh, 2
+    mov dl, 40
+    mov bh, 30h
+    int 10h
+
+    lea dx, outSecondItem
+    mov ah, 09h
+    int 21h
+
+    xor bx, bx
+    mov bl, secondItem[1]
+    mov secondItem[bx+2], '$'
+    lea dx, secondItem + 2
+    mov ah, 09h
+    int 21h
+
+    ; Output thirdItem
+    mov ah, 06h
+    xor cl, cl
+    xor ax, ax
+
+    mov ah, 06h
+    mov ch, 3
+    mov cl, 2
+    mov dh, 3
+    mov dl, 40
+    mov bh, 70h
+    int 10h
+
+    lea dx, outThirdItem
+    mov ah, 09h
+    int 21h
+
+    xor bx, bx
+    mov bl, thirdItem[1]
+    mov thirdItem[bx+2], '$'
+    lea dx, thirdItem + 2
+    mov ah, 09h
+    int 21h
+
+    ; Output fourthItem
+    mov ah, 06h
+    xor cl, cl
+    xor ax, ax
+
+    mov ah, 06h
+    mov ch, 4
+    mov cl, 2
+    mov dh, 4
+    mov dl, 40
+    mov bh, 30h
+    int 10h
+
+    lea dx, outFourthItem
+    mov ah, 09h
+    int 21h
+
+    xor bx, bx
+    mov bl, fourthItem[1]
+    mov fourthItem[bx+2], '$'
+    lea dx, fourthItem + 2
+    mov ah, 09h
+    int 21h
+
+    ; Output fifthItem
+    mov ah, 06h
+    xor cl, cl
+    xor ax, ax
+
+    mov ah, 06h
+    mov ch, 5
+    mov cl, 2
+    mov dh, 5
+    mov dl, 40
+    mov bh, 70h
+    int 10h
+
+    lea dx, outFifthItem
+    mov ah, 09h
+    int 21h
+
+    xor bx, bx
+    mov bl, fifthItem[1]
+    mov fifthItem[bx+2], '$'
+    lea dx, fifthItem + 2
+    mov ah, 09h
+    int 21h
+
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+    CALL NEW_LINE
+    CALL NEW_LINE
+
+    MOV AH, 09h
+    LEA DX, pressBACK
+    INT 21h
+
+    ; Wait for user to press Enter (check for Enter key: ASCII value 0Dh)
+    MOV AH, 01h   ; Function to read a character from input
+    INT 21h
+
+    ; Check if Enter (0Dh) was pressed, if not, continue to wait
+    CMP AL, 0Dh
+    CALL CLEAR_SCREEN
+    JMP loopMenu   ; If Enter was pressed, go back to the menu
+    JMP $           ; If not, keep waiting
+
 main endp
 
 tittle proc
@@ -331,6 +556,9 @@ tittle proc
   ; Optionally, add a new line after the title information
 
 tittle endp
+
+
+
 
 
 
@@ -433,6 +661,16 @@ displayMenu PROC
     lea dx, deleteExistingRecord
     int 21h
 
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    mov ah, 09h
+    mov bh, 0
+    mov bl, 29h   ; BG,FG
+    mov cx, 50  ; Length
+    int 10h
+
+    mov ah, 09h
+    lea dx, viewExistingRecord
+    int 21h
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ret
 displayMenu ENDP
