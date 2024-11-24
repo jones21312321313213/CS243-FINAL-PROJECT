@@ -2,21 +2,21 @@
 .stack 100h
 
 .data
-    inv         db '                ...                  ',13,10
-                db '              ........               ',13,10
-                db '              .:   ...               ',13,10
-                db '          .-============-.          ',13,10
-                db '          .--------------:          ',13,10
-                db '          .--------------:          ',13,10
-                db '          .--------------:          ',13,10
-                db '          .--------------:          ',13,10
-                db '          .--------------:          ',13,10
-                db '          .--------------:          ',13,10
-                db '          .--------------:          ',13,10
-                db '          ................          ',13,10
-                db '                                    ',13,10, '$'
+    msg1 db '                   _                 ____     _____   ', 13, 10
+         db '                  |"|        ___    / __"| u |_ " _|  ', 13, 10
+         db '                U | | u     |_"_|  <\___ \/    | |    ', 13, 10
+         db '                 \| |/__     | |    u___) |   /| |\   ', 13, 10
+         db '                  |_____|  U/| |\u  |____/>> u |_|U   ', 13, 10
+         db '                  //  \\.-,_|___|_,-.)(  (__)_// \\_  ', 13, 10
+         db '                 (_")("_)\_)-'' ''-(_/(__)    (__) (__) ', 13, 10, '$'
 
-
+    emptyMSG    db '            U _____ u  __  __    ____    _____   __   __       ', 13, 10
+                db '            \| ___"|/U|'' \/ ''uU|  _"\ u|_ " _|  \ \ / /     ', 13, 10
+                db '             |  _|"  \| |\/| |/\| |_) |/  | |     \ V /      ', 13, 10
+                db '             | |___   | |  | |  |  __/   /| |\   U_|"|_u     ', 13, 10
+                db '             |_____|  |_|  |_|  |_|     u |_|U     |_|       ', 13, 10
+                db '             <<   >> <<,-,,-.   ||>>_   _// \\_.-,//|(_      ', 13, 10
+                db '            (__) (__) (./  \.) (__)__) (__) (__)\_) (__)     ', 13, 10, '$'
 
 .code
 main proc
@@ -24,30 +24,29 @@ main proc
     mov ax, @data
     mov ds, ax
 
-    ; Clear the screen before anything is displayed
+    ; Clear the screen before displaying messages
     CALL CLEAR_SCREEN
 
-    ; Set cursor to the top left (position 0,0) for optimal start
-    MOV AH, 02h
-    MOV BH, 00h      ; Page number (usually 0 for default screen)
-    MOV DH, 00h      ; Row (line) 0
-    MOV DL, 00h      ; Column (character) 0
-    INT 10h          ; Call BIOS interrupt to set cursor position
-
-
-
-
-    mov ah,02h
-    mov cl, 0AH
-    ; Display the ASCII art message
+    ; Display the first ASCII art
     mov ah, 09h
-    lea dx, inv
+    lea dx, msg1
     int 21h
 
+    ; Wait for the user to press any key
+    mov ah, 00h
+    int 16h
+
+    ; Clear the screen before displaying the next message
+    CALL CLEAR_SCREEN
+
+    ; Display the second ASCII art
+    mov ah, 09h
+    lea dx, emptyMSG
+    int 21h
 
     ; Wait for the user to press any key
-    mov ah, 00h  ; Function to wait for a key press
-    int 16h      ; BIOS interrupt to read key press
+    mov ah, 00h
+    int 16h
 
     ; Exit program
     mov ah, 4Ch
@@ -55,16 +54,17 @@ main proc
 main endp
 
 CLEAR_SCREEN PROC
-    MOV AX, 0600H
-    MOV BH, 07H
-    MOV CX, 0000H
-    MOV DX, 184FH
-    INT 10H
-    
-    MOV AH, 02H
-    MOV BH, 0
-    MOV DX, 0000H
-    INT 10H
+    ; Clear the screen and reset cursor to the top-left
+    MOV AX, 0600H          ; Function to scroll the entire screen up
+    MOV BH, 07H            ; Attribute for blank spaces
+    MOV CX, 0000H          ; Top left corner (row 0, column 0)
+    MOV DX, 184FH          ; Bottom right corner (row 24, column 79)
+    INT 10H                ; Call BIOS interrupt 10h to clear the screen
+
+    MOV AH, 02H            ; Move cursor function
+    MOV BH, 0              ; Page number
+    MOV DX, 0000H          ; Position cursor at (0,0)
+    INT 10H                ; Call BIOS interrupt 10h to set cursor position
     RET
 CLEAR_SCREEN ENDP
 
