@@ -1,71 +1,122 @@
-.model small
-.stack 100h
+.MODEL SMALL
+.STACK 100H
 
-.data
-    msg1 db '                   _                 ____     _____   ', 13, 10
-         db '                  |"|        ___    / __"| u |_ " _|  ', 13, 10
-         db '                U | | u     |_"_|  <\___ \/    | |    ', 13, 10
-         db '                 \| |/__     | |    u___) |   /| |\   ', 13, 10
-         db '                  |_____|  U/| |\u  |____/>> u |_|U   ', 13, 10
-         db '                  //  \\.-,_|___|_,-.)(  (__)_// \\_  ', 13, 10
-         db '                 (_")("_)\_)-'' ''-(_/(__)    (__) (__) ', 13, 10, '$'
+.DATA
+    enterNewItem DB 'Enter the new value for the first item: $'
+    pressEnter DB 'Press Enter to continue... $'
+    newline DB 0AH, 0DH, '$'
+    colon DB ': $'
 
-    emptyMSG    db '            U _____ u  __  __    ____    _____   __   __       ', 13, 10
-                db '            \| ___"|/U|'' \/ ''uU|  _"\ u|_ " _|  \ \ / /     ', 13, 10
-                db '             |  _|"  \| |\/| |/\| |_) |/  | |     \ V /      ', 13, 10
-                db '             | |___   | |  | |  |  __/   /| |\   U_|"|_u     ', 13, 10
-                db '             |_____|  |_|  |_|  |_|     u |_|U     |_|       ', 13, 10
-                db '             <<   >> <<,-,,-.   ||>>_   _// \\_.-,//|(_      ', 13, 10
-                db '            (__) (__) (./  \.) (__)__) (__) (__)\_) (__)     ', 13, 10, '$'
+    ; Item buffers
+    firstItem DB 100, 11, 'First Item', '$', 100 DUP(' ') ; max length, actual length, string data
+    secondItem DB 100, 12, 'Second Item', '$', 100 DUP(' ')
+    thirdItem DB 100, 11, 'Third Item', '$', 100 DUP(' ')
+    fourthItem DB 100, 12, 'Fourth Item', '$', 100 DUP(' ')
+    fifthItem DB 100, 11, 'Fifth Item', '$', 100 DUP(' ')
 
-.code
-main proc
-    ; Set up the data segment
-    mov ax, @data
-    mov ds, ax
+    ; Buffer for user input
+    newFirstItem DB 100, 0, 100 DUP(' ')
 
-    ; Clear the screen before displaying messages
-    CALL CLEAR_SCREEN
+.CODE
 
-    ; Display the first ASCII art
-    mov ah, 09h
-    lea dx, msg1
-    int 21h
+MAIN PROC
+    ; Initialize DS
+    MOV AX, @DATA
+    MOV DS, AX
 
-    ; Wait for the user to press any key
-    mov ah, 00h
-    int 16h
+    ; Update first item
+    CALL updateFirstItemCALL
 
-    ; Clear the screen before displaying the next message
-    CALL CLEAR_SCREEN
-
-    ; Display the second ASCII art
-    mov ah, 09h
-    lea dx, emptyMSG
-    int 21h
-
-    ; Wait for the user to press any key
-    mov ah, 00h
-    int 16h
+    ; Display all items
+    CALL displayITEMS
 
     ; Exit program
-    mov ah, 4Ch
-    int 21h
-main endp
+    MOV AH, 4CH
+    INT 21H
+MAIN ENDP
 
-CLEAR_SCREEN PROC
-    ; Clear the screen and reset cursor to the top-left
-    MOV AX, 0600H          ; Function to scroll the entire screen up
-    MOV BH, 07H            ; Attribute for blank spaces
-    MOV CX, 0000H          ; Top left corner (row 0, column 0)
-    MOV DX, 184FH          ; Bottom right corner (row 24, column 79)
-    INT 10H                ; Call BIOS interrupt 10h to clear the screen
+updateFirstItemCALL PROC
+    ; Prompt for new value
+    CALL NEW_LINE
+    MOV AH, 09H
+    LEA DX, enterNewItem
+    INT 21H
 
-    MOV AH, 02H            ; Move cursor function
-    MOV BH, 0              ; Page number
-    MOV DX, 0000H          ; Position cursor at (0,0)
-    INT 10H                ; Call BIOS interrupt 10h to set cursor position
+    ; Take user input
+    MOV AH, 0AH
+    LEA DX, newFirstItem
+    INT 21H
+
+    ; Update firstItem with the new value
+    LEA SI, newFirstItem + 2    ; Start of the new input string
+    LEA DI, firstItem + 2       ; Start of the firstItem buffer
+    MOV AL, newFirstItem[1]     ; Get the length of the new input
+    MOV [firstItem + 1], AL     ; Update the actual length in firstItem
+    MOV CL, AL                  ; Store length in CL for loop
+
+COPY_STRING:
+    MOV AL, [SI]                ; Load character from input buffer
+    MOV [DI], AL                ; Store character in firstItem
+    INC SI                      ; Move to next input character
+    INC DI                      ; Move to next firstItem character
+    LOOP COPY_STRING            ; Repeat for all characters
+
+    ; Null-terminate the updated firstItem
+    MOV BYTE PTR [DI], '$'
+    CALL NEW_LINE
+
+    ; Prompt to continue
+    LEA DX, pressEnter
+    MOV AH, 09H
+    INT 21H
+
     RET
-CLEAR_SCREEN ENDP
+updateFirstItemCALL ENDP
 
-end main
+displayITEMS PROC
+    CALL NEW_LINE
+
+    ; Display firstItem
+    LEA DX, firstItem + 2
+    MOV AH, 09H
+    INT 21H
+
+    CALL NEW_LINE
+
+    ; Display secondItem
+    LEA DX, secondItem + 2
+    MOV AH, 09H
+    INT 21H
+
+    CALL NEW_LINE
+
+    ; Display thirdItem
+    LEA DX, thirdItem + 2
+    MOV AH, 09H
+    INT 21H
+
+    CALL NEW_LINE
+
+    ; Display fourthItem
+    LEA DX, fourthItem + 2
+    MOV AH, 09H
+    INT 21H
+
+    CALL NEW_LINE
+
+    ; Display fifthItem
+    LEA DX, fifthItem + 2
+    MOV AH, 09H
+    INT 21H
+
+    RET
+displayITEMS ENDP
+
+NEW_LINE PROC
+    LEA DX, newline
+    MOV AH, 09H
+    INT 21H
+    RET
+NEW_LINE ENDP
+
+END MAIN
