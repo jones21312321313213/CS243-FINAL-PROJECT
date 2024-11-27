@@ -82,6 +82,7 @@
   updateExistingRecord db '4.Update existing Inventory                                  ',13,10,'$';
   deleteExistingRecord db '5.Delete existing Inventory                                  ',13,10,'$';
   viewExistingRecord db '6.View existing Inventory                                      ',13,10,'$';
+                exit db '7.Exit Program                                                 ',13,10,'$';
   space db '                      $'
 
   choice db 'Enter your choice: $'
@@ -107,7 +108,7 @@
   errorInvalid  DB 'ERROR! Invalid choice!                                                        $',13,10
   pressEnter DB 'PRESS ENTER TO CONTINUE!                                                         $',13,10
   pressBACK DB 'PRESS ANY KEYS TO GO BACK TO MAIN MENU :)$'
-  isEmpty DB 'LIST/INVENTORY IS EMPTY! PLEASE ADD SOME$'
+  isEmpty DB '           LIST/INVENTORY IS EMPTY! PLEASE ADD SOME$'
  ; Variables;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                 DB ?
 
@@ -556,10 +557,6 @@ tittle proc
   ; Optionally, add a new line after the title information
 
 tittle endp
-
-
-
-
 
 
 NEW_LINE PROC
