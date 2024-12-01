@@ -78,7 +78,30 @@
             db '/___/_/ /_/|___/\___/_/ /_/\__/\____/_/   \__, /  ', 13, 10
             db '                                         /____/    ', 13, 10, '$'
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-  online db ' Grocery Items Inventory System $'
+doYouHave   db '            ______       __   __             _   _   ___  _   _ _____ ',13,10
+            db '            |  _  \      \ \ / /            | | | | / _ \| | | |  ___|',13,10
+            db '            | | | |___    \ V /___  _   _   | |_| |/ /_\ \ | | | |__  ',13,10
+            db '            | | | / _ \    \ // _ \| | | |  |  _  ||  _  | | | |  __| ',13,10
+            db '            | |/ / (_) |   | | (_) | |_| |  | | | || | | \ \_/ / |___ ',13,10
+            db '            |___/ \___/    \_/\___/ \__,_|  \_| |_/\_| |_/\___/\____/ ',13,10,'$'
+ ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+ acc db '              ___           ___                            _  ___  ',13,10
+    db '             / _ \         / _ \                          | ||__ \ ',13,10
+    db '            / /_\ \_ __   / /_\ \ ___ ___ ___  _   _ _ __ | |_  ) |',13,10
+    db '            |  _  | ''_ \  |  _  |/ __/ __/ _ \| | | | ''_ \| __|/ / ',13,10
+    db '            | | | | | | | | | | | (_| (_| (_) | |_| | | | | |_|_|  ',13,10
+    db '            \_| |_/_| |_| \_| |_/\___\___\___/ \__,_|_| |_|\__(_)  ',13,10,'$'
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 
+userMSG db ' _  _  ____  ____  ____                                           ', 13, 10
+    db'/ )( \/ ___)(  __)(  _ \                                          ', 13, 10
+    db') \/ (\___ \ ) _)  )   /                                          ', 13, 10
+    db'\____/(____/(____)(__\_)                                          ', 13, 10
+    db'____  ____  ___  __  ____  ____  ____   __  ____  __  __   __ _ ', 13, 10
+    db'(  _ \(  __)/ __)(  )/ ___)(_  _)(  _ \ / _\(_  _)(  )/  \ (  ( \', 13, 10
+    db')   / ) _)( (_ \ )( \___ \  )(   )   //    \ )(   )((  O )/    /', 13, 10
+    db'(__\_)(____)\___/(__)(____/ (__) (__\_)\_/\_/(__) (__)\__/ \_)__)', 13, 10, '$'
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;  
+  online db ' CITU - Grocery Items Inventory System $'
   programmer db 0ah, ' Programmer: JOSHUA D. ARCO ',13,10,'$'
   date db 0ah, ' Date(Written): NOV. 22, 2024$'
 
@@ -92,13 +115,19 @@
   space db '                      $'
 
   choice db 'Enter your choice: $'
+  choice2 db 13,10,10,'            Enter Y for YES and N for NO: $'
   thankk db 'Thank you for using the program :)$';
   chooseUpdate db 'Choose Which Item do you want to update? (1-5): $'
   enterNewItem db 13,10,'Enter name of the item to replace $: $$$',0
   colon db ':$'
   chooseDelete db 'Choose Which Item do you want to delete? (1-5): $';
   success db 'Item has been successfully deleted!',13,10,'$'
+  accSucc db 13, 10, 'Registration Successful!$'
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+  promptUsername db 13,10,'Enter username: $'
+  promptPassword db 13,10,'Enter password: $'
+  promptConfirmPass db 13,10,'Confirm password: $'
 
   enterGrocery db 0ah,0ah, 'Please enter your 5 grocery items to be added in the inventory: $'
   promptFirstItem db 0ah,'Item No. 1: $'
@@ -121,20 +150,30 @@
   pressEnter DB 'PRESS ENTER TO CONTINUE!                                                         $',13,10
   pressBACK DB 'PRESS ANY KEYS TO GO BACK TO MAIN MENU :)$'
   isEmpty DB '           LIST/INVENTORY IS EMPTY! PLEASE ADD SOME$'
+  pressEnter2 DB '            PRESS ENTER TO CONTINUE!$',13,10
+  password_mismatch db 'Passwords do not match. Please try again.$', 13, 10, '$'
+  Ast     db "*$"
  ; Variables;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                 DB ?
 
-  firstItem db 100, ?, 100 dup(' ')
-  secondItem db 100, ?, 100 dup(' ')
-  thirdItem db 100, ?, 100 dup(' ')
-  fourthItem db 100, ?, 100 dup(' ')
-  fifthItem db 100, ?, 100 dup(' ')
+  username db 100, ?, 100 dup(' ');4 registration
+  password  db 100 dup('$');4 registration
+  confirmPass  db 100 dup('$');4 registration
 
-  newFirstItem db 100 dup('$')
-  newSecondItem db 100 dup('$')
-  newThirdItem db 100 dup('$')
-  newFourthItem db 100 dup('$')
-  newFifthItem db 100 dup('$')
+  logInUsername db 100, ?, 100 dup(' '); 4 login
+  logInPassword db 100, ?, 100 dup(' '); 4 login
+
+  firstItem db 100, ?, 100 dup(' ');4 creation
+  secondItem db 100, ?, 100 dup(' ');4 creation
+  thirdItem db 100, ?, 100 dup(' ');4 creation
+  fourthItem db 100, ?, 100 dup(' ');4 creation
+  fifthItem db 100, ?, 100 dup(' ');4 creation
+
+  newFirstItem db 100 dup('$');4 update 
+  newSecondItem db 100 dup('$');4 update 
+  newThirdItem db 100 dup('$');4 update 
+  newFourthItem db 100 dup('$');4 update 
+  newFifthItem db 100 dup('$');4 update 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -186,7 +225,79 @@ main proc
     mov ah, 00h  ; Function to wait for a key press
     int 16h      ; BIOS interrupt to read key press
 
-  
+askAccount:
+    CALL CLEAR_SCREEN
+    CALL askIfAccExists
+
+    mov ah, 09h
+    lea dx, choice2
+    int 21h
+
+    ; Get user input (choice)
+    MOV AH, 01H
+    INT 21H
+    
+    CMP AL,'Y'
+    JE loopMenu
+    CMP AL,'y'
+    JE loopMenu
+    CMP AL,'N'
+    JE userRegistrationCALL
+    ; Invalid choice
+    MOV DL, 0DH
+    MOV AH, 02H
+    INT 21H
+
+    MOV DL, 0AH
+    INT 21H
+
+    CALL NEW_LINE    
+
+    CALL spacing
+    CALL spacing
+    CALL spacing
+    CALL spacing
+    CALL spacing
+    CALL spacing
+    CALL spacing
+    CALL spacing
+    CALL spacing
+    CALL spacing
+    CALL spacing
+    CALL spacing
+    
+    mov ah, 09h
+    mov bh, 0
+    mov bl, 0CEh   ; BG,FG
+    mov cx, 27    ; Length
+    int 10h
+
+
+    LEA DX, errorInvalid
+    MOV AH, 09H
+    INT 21H
+    
+    CALL NEW_LINE
+    CALL NEW_LINE
+
+    
+    MOV AH, 09h
+    LEA DX, pressEnter2
+    INT 21h
+
+    ; Wait for user to press Enter (check for Enter key: ASCII value 0Dh)
+    MOV AH, 01h   ; Function to read a character from input
+    INT 21h
+
+    ; Check if Enter (0Dh) was pressed, if not, continue to wait
+    CMP AL, 0Dh
+    CALL CLEAR_SCREEN
+    JZ askAccount   ; If Enter was pressed, go back to the menu
+    JMP $         ; If not, keep waiting
+
+userRegistrationCALL:
+    CALL userRegistrationFUNCTION
+
 loopMenu:
   ; CALL MAIN MENU
   CALL mainMenuCALL
@@ -990,7 +1101,6 @@ END_CLEAR:
     CALL waitUserToPressEnter
 deleteFirstItemFunction ENDP
 
-
 deleteSecondItemFunction PROC 
 
     ; Set the length byte (second byte) to 0 to indicate that the string is empty
@@ -1124,6 +1234,13 @@ tittle proc
   ret
 tittle endp
 
+spacing proc
+    mov dl, ' '         ; ASCII value for space
+    mov ah, 02h         ; DOS function to display a single character
+    int 21h             ; Call DOS interrupt
+    ret                 ; Return to caller
+spacing endp
+
 NEW_LINE PROC
   ; Output Carriage Return (CR)
   MOV DL, 0DH
@@ -1173,7 +1290,6 @@ displayITEMS PROC
     mov ah, 09h
     int 21h
 
-
     xor bx, bx
     mov bl, firstItem[1]
     mov firstItem[bx+2], '$'
@@ -1205,7 +1321,6 @@ displayITEMS PROC
     mov ah, 09h
     int 21h
 
-
     ; Output thirdItem
     mov ah, 06h
     xor cl, cl
@@ -1222,7 +1337,6 @@ displayITEMS PROC
     lea dx, outThirdItem
     mov ah, 09h
     int 21h
-
 
     xor bx, bx
     mov bl, thirdItem[1]
@@ -1284,6 +1398,244 @@ displayITEMS PROC
   ret
 displayITEMS ENDP 
 
+askIfAccExists PROC      
+    mov ah, 09h
+    lea dx, doYouHave
+    int 21h
+
+    CALL NEW_LINE
+
+    mov ah, 09h
+    lea dx, acc
+    int 21h
+
+    ret
+askIfAccExists ENDP     
+
+;;so many bug
+userRegistrationFUNCTION PROC
+    ; Ask for username (only once)
+    CALL CLEAR_SCREEN
+
+    lea dx, userMSG
+    mov ah, 09h              ; DOS function to display string
+    int 21h
+
+    lea dx, promptUsername
+    mov ah, 09h              ; DOS function to display string
+    int 21h
+
+    ; Take username input (no masking)
+    mov ah, 0ah
+    lea dx, username
+    int 21h
+
+    ; Insert blank line
+    CALL NEW_LINE
+
+input_passwords:    ; Label to loop if passwords do not match
+    ; Clear the password and confirm password buffers before new input
+    lea si, password
+    mov cx, 100            ; Buffer size
+   
+
+    lea si, confirmPass
+    mov cx,100
+
+
+    ; Display password prompt
+    lea dx, promptPassword
+    mov ah, 09h
+    int 21h
+
+    lea si, password       ; buffer to hold the password
+    lea dx, Ast            ; symbol to display *
+
+input_password:
+    ; get char typed for password
+    mov ah, 7
+    int 21h
+    ; check if the pressed key is Enter (0Dh)
+    cmp al, 0Dh
+    je input_done          ; if Enter is pressed, stop input
+
+    ; save the typed char in our password buffer
+    mov byte ptr[si], al
+
+    ; Display Asterisk
+    mov ah, 9
+    int 21h                ; display the asterisk (*)
+
+    ; increase buffer pointer
+    inc si
+
+    ; continue the loop for next character
+    jmp input_password
+
+input_done:
+    ; properly terminate our password string
+    mov byte ptr[si], "$"
+
+    ; Insert blank line
+    CALL NEW_LINE
+
+    ; Display confirmation password prompt
+    lea dx, promptConfirmPass
+    mov ah, 09h
+    int 21h
+
+    lea si, confirmPass    ; buffer to hold the confirm password
+    lea dx, Ast            ; symbol to display *
+
+input_confirm_password:
+    ; get char typed for confirm password
+    mov ah, 7
+    int 21h
+    ; check if the pressed key is Enter (0Dh)
+    cmp al, 0Dh
+    je confirm_input_done  ; if Enter is pressed, stop input
+
+    ; save the typed char in our confirm password buffer
+    mov byte ptr[si], al
+
+    ; Display Asterisk
+    mov ah, 9
+    int 21h                ; display the asterisk (*)
+
+    ; increase buffer pointer
+    inc si
+
+    ; continue the loop for next character
+    jmp input_confirm_password
+
+confirm_input_done:
+    ; properly terminate our confirm password string
+    mov byte ptr[si], "$"
+
+    ; Compare lengths of both passwords
+    lea si, password           ; point to the first password
+    lea di, confirmPass        ; point to the confirm password
+    call compare_lengths
+    jc passwords_mismatch2     ; Jump to mismatch if lengths differ
+
+    ; Compare both passwords
+    lea si, password           ; point to the first password
+    lea di, confirmPass        ; point to the confirm password
+    mov cx, 100                ; maximum characters to compare
+    call compare_passwords
+
+    ; If passwords match, proceed to success message
+    lea dx, accSucc
+    mov ah, 09h
+    int 21h
+
+    ; Exit
+    mov ah, 4Ch
+    int 21h
+
+passwords_mismatch2:
+    ; Display mismatch message and prompt to re-enter password
+    lea dx, password_mismatch
+    mov ah, 09h
+    int 21h
+
+    ; Re-enter password and confirmation (without asking for username)
+    CALL clear_password_buffer
+    call clear_confirm_password_buffer
+    jmp input_passwords
+
+; Function to clear a buffer (set all bytes to zero)
+clear_password_buffer proc
+    ; Clear the password buffer
+    
+    mov byte ptr [password + 1], 0       ; Set the length byte to 0
+
+    ; Clear the string content
+    lea di, password + 2       ; Start at the position where the string starts
+clearPass:
+    mov byte ptr [di], 0       ; Clear each byte
+    inc di
+    cmp byte ptr [di], '$'     ; If we reach the null terminator, stop
+    je END_CLEAR1
+    jmp clearPass
+END_CLEAR1:
+    ret
+clear_password_buffer endp
+
+clear_confirm_password_buffer proc
+    ; Clear the confirm password buffer
+   
+    mov byte ptr [confirmPass + 1], 0       ; Set the length byte to 0
+
+    ; Clear the string content
+    lea di, confirmPass + 2    ; Start at the position where the string starts
+clearConfirmPass:
+    mov byte ptr [di], 0       ; Clear each byte
+    inc di
+    cmp byte ptr [di], '$'     ; If we reach the null terminator, stop
+    je END_CONFIRM_CLEAR
+    jmp clearConfirmPass
+
+END_CONFIRM_CLEAR:
+    ret
+clear_confirm_password_buffer endp
+
+; Function to compare the lengths of two strings
+compare_lengths proc
+    ; Compare lengths of password and confirm password
+    lea si, password
+    lea di, confirmPass
+    xor ax, ax              ; Clear AX (length counter)
+
+compare_length_loop:
+    ; Check if the byte at SI (password) is '$' (end of string)
+    cmp byte ptr [si], '$'
+    je length_check_done     ; If end of string, stop
+    inc si
+    inc ax
+    jmp compare_length_loop
+
+length_check_done:
+    ; Store the length of the password in AX
+    mov bx, ax               ; Store password length in BX
+
+    lea si, confirmPass
+    xor ax, ax               ; Clear AX again (length counter)
+
+compare_confirm_length_loop:
+    ; Check if the byte at SI (confirm password) is '$' (end of string)
+    cmp byte ptr [si], '$'
+    je compare_length_done   ; If end of string, stop
+    inc si
+    inc ax
+    jmp compare_confirm_length_loop
+
+compare_length_done:
+    ; Compare the lengths of password and confirm password
+    cmp ax, bx
+    je lengths_match         ; If lengths match, continue
+    jc passwords_mismatch2   ; If lengths don't match, jump to mismatch
+
+lengths_match:
+    ret
+compare_lengths endp
+
+; Function to compare two passwords
+compare_passwords proc
+    mov al, [si]             ; Load byte from password into AL
+    cmp al, [di]             ; Compare with byte from confirm password
+    jne passwords_mismatch2  ; Jump if not equal
+    inc si                   ; Move to the next character
+    inc di
+    loop compare_passwords   ; Loop until all characters are compared
+    ret
+compare_passwords endp
+userRegistrationFUNCTION ENDP
+
+
+
+
+
 displayMenu PROC  
   ; Display menu options
     CALL NEW_LINE
@@ -1301,7 +1653,6 @@ displayMenu PROC
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
     mov ah, 09h
     mov bh, 0
     mov bl, 29h   ; BG,FG
@@ -1329,7 +1680,6 @@ displayMenu PROC
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
     mov ah, 09h
     mov bh, 0
     mov bl, 29h   ; BG,FG
@@ -1343,7 +1693,6 @@ displayMenu PROC
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
     mov ah, 09h
     mov bh, 0
     mov bl, 29h   ; BG,FG
@@ -1374,6 +1723,6 @@ displayMenu PROC
     mov ah, 09h
     lea dx, exit
     int 21h
-  ret
+    ret
 displayMenu ENDP
 end main
