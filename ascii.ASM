@@ -1,122 +1,126 @@
-.MODEL SMALL
-.STACK 100H
+.model small
+.stack 10h
+.data
+prompt db "Enter your pass (Press Enter when done):$"
+confirm_prompt  db "Confirm your pass (Press Enter when done):$"
+greet   db "Hello $"
+pass    db 100 dup(?)    ; buffer to hold the password
+confirm_pass db 100 dup(?) ; buffer to hold the confirm password
+Ast     db "*$"
+crlf    db 13, 10, 24H
+mismatch_msg db "Passwords do not match. Please try again.$"
 
-.DATA
-    enterNewItem DB 'Enter the new value for the first item: $'
-    pressEnter DB 'Press Enter to continue... $'
-    newline DB 0AH, 0DH, '$'
-    colon DB ': $'
+.code
+    mov     ax, @data
+    mov     ds, ax
 
-    ; Item buffers
-    firstItem DB 100, 11, 'First Item', '$', 100 DUP(' ') ; max length, actual length, string data
-    secondItem DB 100, 12, 'Second Item', '$', 100 DUP(' ')
-    thirdItem DB 100, 11, 'Third Item', '$', 100 DUP(' ')
-    fourthItem DB 100, 12, 'Fourth Item', '$', 100 DUP(' ')
-    fifthItem DB 100, 11, 'Fifth Item', '$', 100 DUP(' ')
+    ; Display Name prompt
+    lea     dx, prompt
+    mov     ah, 9
+    int     21h
 
-    ; Buffer for user input
-    newFirstItem DB 100, 0, 100 DUP(' ')
+    lea     si, pass       ; buffer to hold the password
+    lea     dx, Ast       ; symbol to display *
 
-.CODE
+input_password:
+    ; get char typed for password
+    mov     ah, 7
+    int     21h
+    ; check if the pressed key is Enter (0Dh)
+    cmp     al, 0Dh
+    je      input_done    ; if Enter is pressed, stop input
 
-MAIN PROC
-    ; Initialize DS
-    MOV AX, @DATA
-    MOV DS, AX
+    ; save the typed char in our password buffer
+    mov     byte ptr[si], al
 
-    ; Update first item
-    CALL updateFirstItemCALL
+    ; Display Asterisk
+    mov     ah, 9
+    int     21h           ; display the asterisk (*)
 
-    ; Display all items
-    CALL displayITEMS
+    ; increase buffer pointer
+    inc     si
 
-    ; Exit program
-    MOV AH, 4CH
-    INT 21H
-MAIN ENDP
+    ; continue the loop for next character
+    jmp     input_password
 
-updateFirstItemCALL PROC
-    ; Prompt for new value
-    CALL NEW_LINE
-    MOV AH, 09H
-    LEA DX, enterNewItem
-    INT 21H
+input_done:
+    ; properly terminate our password string
+    mov     byte ptr[si], "$"
 
-    ; Take user input
-    MOV AH, 0AH
-    LEA DX, newFirstItem
-    INT 21H
+    ; insert blank line
+    lea     dx, crlf
+    mov     ah, 9
+    int     21h
 
-    ; Update firstItem with the new value
-    LEA SI, newFirstItem + 2    ; Start of the new input string
-    LEA DI, firstItem + 2       ; Start of the firstItem buffer
-    MOV AL, newFirstItem[1]     ; Get the length of the new input
-    MOV [firstItem + 1], AL     ; Update the actual length in firstItem
-    MOV CL, AL                  ; Store length in CL for loop
+    ; Display confirmation prompt
+    lea     dx, confirm_prompt
+    mov     ah, 9
+    int     21h
 
-COPY_STRING:
-    MOV AL, [SI]                ; Load character from input buffer
-    MOV [DI], AL                ; Store character in firstItem
-    INC SI                      ; Move to next input character
-    INC DI                      ; Move to next firstItem character
-    LOOP COPY_STRING            ; Repeat for all characters
+    lea     si, confirm_pass ; buffer to hold the confirm password
+    lea     dx, Ast          ; symbol to display *
 
-    ; Null-terminate the updated firstItem
-    MOV BYTE PTR [DI], '$'
-    CALL NEW_LINE
+input_confirm_password:
+    ; get char typed for confirm password
+    mov     ah, 7
+    int     21h
+    ; check if the pressed key is Enter (0Dh)
+    cmp     al, 0Dh
+    je      confirm_input_done ; if Enter is pressed, stop input
 
-    ; Prompt to continue
-    LEA DX, pressEnter
-    MOV AH, 09H
-    INT 21H
+    ; save the typed char in our confirm password buffer
+    mov     byte ptr[si], al
 
-    RET
-updateFirstItemCALL ENDP
+    ; Display Asterisk
+    mov     ah, 9
+    int     21h           ; display the asterisk (*)
 
-displayITEMS PROC
-    CALL NEW_LINE
+    ; increase buffer pointer
+    inc     si
 
-    ; Display firstItem
-    LEA DX, firstItem + 2
-    MOV AH, 09H
-    INT 21H
+    ; continue the loop for next character
+    jmp     input_confirm_password
 
-    CALL NEW_LINE
+confirm_input_done:
+    ; properly terminate our confirm password string
+    mov     byte ptr[si], "$"
 
-    ; Display secondItem
-    LEA DX, secondItem + 2
-    MOV AH, 09H
-    INT 21H
+    ; Compare both passwords
+    lea     si, pass           ; point to the first password
+    lea     di, confirm_pass   ; point to the confirm password
+    mov     cx, 100            ; maximum characters to compare
+    call compare_passwords
 
-    CALL NEW_LINE
+    ; If passwords match, display success message
+    lea     dx, greet
+    mov     ah, 9
+    int     21h
 
-    ; Display thirdItem
-    LEA DX, thirdItem + 2
-    MOV AH, 09H
-    INT 21H
+    lea     dx, pass
+    mov     ah, 9
+    int     21h
 
-    CALL NEW_LINE
+    ; exit
+    mov     ah, 4Ch
+    int     21h
 
-    ; Display fourthItem
-    LEA DX, fourthItem + 2
-    MOV AH, 09H
-    INT 21H
+passwords_mismatch:
+    ; Display mismatch message and prompt to re-enter password
+    lea     dx, mismatch_msg
+    mov     ah, 9
+    int     21h
 
-    CALL NEW_LINE
+    ; Re-enter password and confirmation
+    jmp     input_password
 
-    ; Display fifthItem
-    LEA DX, fifthItem + 2
-    MOV AH, 09H
-    INT 21H
-
-    RET
-displayITEMS ENDP
-
-NEW_LINE PROC
-    LEA DX, newline
-    MOV AH, 09H
-    INT 21H
-    RET
-NEW_LINE ENDP
-
-END MAIN
+; Function to compare two passwords
+compare_passwords proc
+    mov     al, [si]             ; Load byte from password into AL
+    cmp     al, [di]             ; Compare with byte from confirm password
+    jne     passwords_mismatch   ; Jump if not equal
+    inc     si                   ; Move to the next character
+    inc     di
+    loop    compare_passwords   ; Loop until all characters are compared
+    ret
+compare_passwords endp
+end
