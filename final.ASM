@@ -1621,16 +1621,19 @@ lengths_match:
 compare_lengths endp
 
 ; Function to compare two passwords
+;; check if this shit wont work again
 compare_passwords proc
-    mov al, [si]             ; Load byte from password into AL
-    cmp al, [di]             ; Compare with byte from confirm password
-    jne passwords_mismatch2  ; Jump if not equal
-    inc si                   ; Move to the next character
-    inc di
-    loop compare_passwords   ; Loop until all characters are compared
+        mov al, [si]             ; Load byte from password into AL
+        cmp al, '$'              ; Check for string termination ($)
+        je password_matchs      ; If null terminator, passwords match
+        cmp al, [di]             ; Compare with byte from confirm password
+        jne passwords_mismatch2   ; Jump to mismatch if not equal
+        inc si                   ; Move to the next character
+        inc di
+        loop compare_passwords        ; Repeat the loop
+password_matchs:
     ret
 compare_passwords endp
-userRegistrationFUNCTION ENDP
 
 
 
