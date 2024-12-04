@@ -1,210 +1,205 @@
+.model small
+.stack 100h
 
+.data
+    username_prompt db 13,10,"Enter username: $"
+    password_prompt db 13,10,"Enter password: $"
+    success_msg db 13,10,"Login Successful!$"
+    failure_msg db 13,10,"Invalid Login!$"
+    register_msg db 13,10,"Please Register First!$"
+mask_char db '*'
+    stored_username db 20 dup('$') ; buffer for username (max 20 chars)
+    stored_password db 20 dup('$') ; buffer for password (max 20 chars)
 
-userRegistrationFUNCTION PROC
-    ; Ask for username
-    CALL CLEAR_SCREEN
+    input_username db 20 dup('$') ; buffer for input username
+    input_password db 20 dup('$') ; buffer for input password
 
-    lea dx, userMSG
-    mov ah, 09h              ; DOS function to display string
+.code
+main proc
+    ; Initialize data segment
+    mov ax, @data
+    mov ds, ax
+
+    ; Display menu
+    lea dx, register_msg
+    mov ah, 09h
     int 21h
 
-    lea dx, promptUsername
-    mov ah, 09h              ; DOS function to display string
+    ; Start the registration process
+    call registration
+
+    ; Start login process after registration
+    call login
+
+    ; Exit program
+    mov ah, 4Ch
     int 21h
 
-    ; Take username input
-    mov ah, 0ah
-    lea dx, username
+registration proc
+    ; Prompt for username
+    lea dx, username_prompt
+    mov ah, 09h
     int 21h
 
-password_loop:
-    ; Ask for password
-    lea dx, promptPassword
-    mov ah, 09h              ; DOS function to display string
+    ; Read username
+    lea dx, input_username
+    mov ah, 0Ah
     int 21h
 
-    ; Take password input (masked with *)
-    xor cx, cx               ; Clear CX for character count (max 20 characters)
-    mov si, 0                ; SI will be used to point to the character variable
+    ; Append '$' to username
+    lea di, input_username + 2
+    mov bl, input_username[1] ; Length of input
+    add di, bx                ; Move to end of input
+    mov al, '$'
+    mov [di], al              ; Append '$'
 
-    ; Read and mask password input
-password_input:
-    mov ah, 08h              ; BIOS function to read a single character
-    int 21h                  ; Get character input (it won't be displayed)
+    ; Store username in stored_username
+    lea si, input_username + 2
+    lea di, stored_username
+    call copy_string
 
-    cmp al, 13               ; Check if Enter (CR) is pressed
-    je password_confirm_input ; Jump if Enter is pressed
-
-    mov dl, '*'              ; Display asterisk character
-    mov ah, 02h              ; DOS function to display character
+    ; Prompt for password
+    lea dx, password_prompt
+    mov ah, 09h
     int 21h
 
-    ; Store the typed character in a variable (direct storage)
-    mov [password + si], al  ; Store the character in the password variable
-    inc si                   ; Move to the next variable
-    inc cx                   ; Increment character count
-    cmp cx, 100               ; Check if we've reached max length (20 chars)
-    jl password_input        ; Repeat the input loop if not at max length
-
-password_confirm_input:
-    ; Null-terminate the password input
-    mov byte ptr [password + si], '$'    ; Terminate password string with '$'
-
-    ; Ask for confirm password
-    lea dx, promptConfirmPass
-    mov ah, 09h              ; DOS function to display string
+    ; Read password
+    lea dx, input_password
+    mov ah, 0Ah
     int 21h
 
-    ; Take confirm password input (masked with *)
-    xor cx, cx               ; Clear CX for character count
-    mov si, 0                ; Reset SI for confirm password
+    ; Masking password input and store the actual password
+    lea si, input_password + 2
+    lea di, input_password
+    mov cx, 0                ; Clear counter for input position
+    call mask_password_input
 
-confirm_password_input:
-    mov ah, 08h              ; BIOS function to read a single character
-    int 21h                  ; Get character input (it won't be displayed)
+    ; Store the actual password (not the masked version)
+    lea si, input_password + 2
+    lea di, stored_password
+    call copy_string
 
-    cmp al, 13               ; Check if Enter (CR) is pressed
-    je compare_passwords     ; Jump if Enter is pressed
-
-    mov dl, '*'              ; Display asterisk character
-    mov ah, 02h              ; DOS function to display character
-    int 21h
-
-    ; Store the typed character in a variable (direct storage)
-    mov [confirmPass + si], al  ; Store the character in the confirm password variable
-    inc si                   ; Move to the next variable
-    inc cx                   ; Increment character count
-    cmp cx, 100               ; Check if we've reached max length (20 chars)
-    jl confirm_password_input ; Repeat the input loop if not at max length
-
-    ; Null-terminate the confirm password input
-    mov byte ptr [confirmPass + si], '$'
-
-compare_passwords:
-    ; Compare the passwords
-    lea si, password         ; Point to the start of the actual password
-    lea di, confirmPass      ; Point to the start of the confirm password
-    mov cx,100
-    call compare_passwords_internal
-
-    ; If passwords match, display success message
-    lea dx, accSucc
-    mov ah, 09h              ; DOS function to display string
-    int 21h
-
-    CALL NEW_LINE
-
-    lea dx, pressEnter
-    mov ah, 09h              ; DOS function to display string
-    int 21h
-
-    CALL waitUserToPressEnter
-
-passwords_mismatch:
-    ; Display mismatch message
-    lea dx, password_mismatch
-    mov ah, 09h              ; DOS function to display string
-    int 21h
-    jmp password_loop         ; Retry password entry
-
-userRegistrationFUNCTION ENDP
-
-; Function to compare two passwords
-compare_passwords_internal proc
-         mov al, [si]             ; Load byte from password into AL
-        cmp al, '$'              ; Check for string termination ($)
-        je loopMenu      ; If null terminator, passwords match
-        cmp al, [di]             ; Compare with byte from confirm password
-        jne passwords_mismatch   ; Jump to mismatch if not equal
-        inc si                   ; Move to the next character
-        inc di
-        loop compare_passwords_internal         ; Repeat the loop
-compare_passwords_internal endp
-
-
-
-
-
-
-
-
-
-
-
-
-
-userRegistrationFUNCTION PROC 
-; Ask for username
-    CALL CLEAR_SCREEN
-
-    lea dx, userMSG
-    mov ah, 09h              ; DOS function to display string
-    int 21h
-
-    lea dx, promptUsername
-    mov ah, 09h              ; DOS function to display string
-    int 21h
-
-    ; Take username input
-    mov ah, 0ah
-    lea dx, username
-    int 21h
-
-password_loop:
-    ; Ask for password
-    lea dx, promptPassword
-    mov ah, 09h              ; DOS function to display string
-    int 21h
-
-    ; Take password input
-    mov ah, 0ah
-    lea dx, password
-    int 21h
-
-    ; Ask for confirm password
-    lea dx, promptConfirmPass
-    mov ah, 09h              ; DOS function to display string
-    int 21h
-
-    ; Take confirm password input
-    mov ah, 0ah
-    lea dx, confirmPass
-    int 21h
-
-    ; Compare passwords
-    lea si, password + 2      ; Point to the actual password input (skip length byte)
-    lea di, confirmPass + 2 ; Point to the actual confirm password input
-    mov cx, 100               ; Maximum length of the password to compare
-    call compare_passwords
-
-    ; If passwords match, display success message
-    lea dx, accSucc
-    mov ah, 09h              ; DOS function to display string
-    int 21h
-
-    CALL NEW_LINE
-
-    lea dx, pressEnter
-    mov ah, 09h              ; DOS function to display string
-    int 21h
-
-   CALL waitUserToPressEnter
-
-passwords_mismatch:
-    ; Display mismatch message
-    lea dx, password_mismatch
-    mov ah, 09h              ; DOS function to display string
-    int 21h
-    jmp password_loop         ; Retry password entry
-
-userRegistrationFUNCTION ENDP 
-; Function to compare two passwords
-compare_passwords proc
-    mov al, [si]             ; Load byte from password into AL
-    cmp al, [di]             ; Compare with byte from confirm password
-    jne passwords_mismatch   ; Jump if not equal
-    inc si                   ; Move to the next character
-    inc di
-    loop compare_passwords   ; Loop until all characters are compared
     ret
-compare_passwords endp
+registration endp
+
+login proc
+    ; Prompt for username
+    lea dx, username_prompt
+    mov ah, 09h
+    int 21h
+
+    ; Read username
+    lea dx, input_username
+    mov ah, 0Ah
+    int 21h
+
+    ; Append '$' to username
+    lea di, input_username + 2
+    mov bl, input_username[1] ; Length of input
+    add di, bx                ; Move to end of input
+    mov al, '$'
+    mov [di], al              ; Append '$'
+
+    ; Compare username
+    lea si, stored_username
+    lea di, input_username + 2
+    call compare_credentials
+    jnz invalid_login ; if not equal, jump to failure
+
+    ; Prompt for password
+    lea dx, password_prompt
+    mov ah, 09h
+    int 21h
+
+    ; Masking password input
+    lea si, input_password + 2
+    lea di, input_password
+    mov cx, 0                ; Clear counter for input position
+    call mask_password_input
+
+    ; Compare password
+    lea si, stored_password
+    lea di, input_password + 2
+    call compare_credentials
+    jnz invalid_login ; if not equal, jump to failure
+
+    ; Login successful
+    lea dx, success_msg
+    mov ah, 09h
+    int 21h
+    ret
+
+invalid_login:
+    ; Login failed
+    lea dx, failure_msg
+    mov ah, 09h
+    int 21h
+    ret
+
+; Copy the string from SI to DI
+copy_string proc
+    ; Copy string from SI to DI, terminating with '$'
+copy_loop:
+    mov al, [si]
+    mov [di], al
+    inc si
+    inc di
+    cmp al, '$'
+    je copy_done
+    jmp copy_loop
+copy_done:
+    ret
+copy_string endp
+
+; Compare strings pointed by SI and DI
+compare_credentials proc
+    ; Compare current bytes from both strings
+    mov al, [si]            ; Load byte from stored string into AL
+compare_loop:
+    cmp al, '$'             ; Check for string termination
+    je credentials_match    ; If end marker, strings match
+    cmp al, [di]            ; Compare with byte from input string
+    jne credentials_mismatch ; If mismatch, jump
+    inc si                  ; Move to next character in stored string
+    inc di                  ; Move to next character in input string
+    mov al, [si]            ; Load next character
+    jmp compare_loop        ; Repeat the loop
+
+credentials_match:
+    xor ax, ax              ; Return 0 for match
+    ret
+
+credentials_mismatch:
+    mov ax, 1               ; Return 1 for mismatch
+    ret
+compare_credentials endp
+
+; Mask the password input as user types
+mask_password_input proc
+    ; Read one character from input
+mask_input_loop:
+    mov al, [si]          ; Get the next character
+    cmp al, 0Dh           ; Check if it is Enter (Carriage Return)
+    je end_masking_input  ; If Enter is pressed, stop
+    cmp al, 20h           ; Check if it is a space
+    je skip_space         ; Skip spaces for better appearance
+
+    ; Mask the character with an asterisk '*'
+    lea dx, mask_char
+    mov ah, 09h
+    int 21h                ; Display the asterisk for masking
+
+    inc si                 ; Move to the next character
+    jmp mask_input_loop    ; Repeat the loop
+
+skip_space:
+    inc si
+    jmp mask_input_loop
+
+end_masking_input:
+    ret
+mask_password_input endp
+login endp 
+main endp
+end main
+
