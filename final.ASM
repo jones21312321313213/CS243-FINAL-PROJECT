@@ -101,6 +101,24 @@ userMSG db ' _  _  ____  ____  ____                                           ',
     db')   / ) _)( (_ \ )( \___ \  )(   )   //    \ )(   )((  O )/    /', 13, 10
     db'(__\_)(____)\___/(__)(____/ (__) (__\_)\_/\_/(__) (__)\__/ \_)__)', 13, 10, '$'
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;  
+    loginLogo db "                                                          ", 13, 10
+    db "                                   +@@=....=@@*                       ", 13, 10
+    db "                                @%              %@                    ", 13, 10
+    db "                              %*      *@@@@*      +%                  ", 13, 10
+    db "                             @      .@@@@@@@@:      @                 ", 13, 10
+    db "                            @       @@@@@@@@@@       @                ", 13, 10
+    db "                           %        @@@@@@@@@@        %               ", 13, 10
+    db "                           @         %@@@@@@%         @               ", 13, 10
+    db "                          .%                          %.              ", 13, 10
+    db "                           @       +@@@@@@@@@@*       @               ", 13, 10
+    db "                           %     %@@@@@@@@@@@@@@%     @               ", 13, 10
+    db "                            @   @@@@@@@@@@@@@@@@@@   @                ", 13, 10
+    db "                             @ %@@@@@@@@@@@@@@@@@@% @                 ", 13, 10
+    db "                              %@@@@@@@@@@@@@@@@@@@@@                  ", 13, 10
+    db "                                @@@@@@@@@@@@@@@@@@                    ", 13, 10
+    db "                                   *@@@@@@@@@@*                       ", 13, 10
+    db "$"
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   online db ' CITU - Grocery Items Inventory System $'
   programmer db 0ah, ' Programmer: JOSHUA D. ARCO ',13,10,'$'
   date db 0ah, ' Date(Written): NOV. 22, 2024$'
@@ -123,7 +141,13 @@ userMSG db ' _  _  ____  ____  ____                                           ',
   chooseDelete db 'Choose Which Item do you want to delete? (1-5): $';
   success db 'Item has been successfully deleted!',13,10,'$'
   accSucc db 13, 10, 'Registration Successful!$'
+  success_msg db 13,10,"Login Successful!$"
+  failure_msg db 13,10,"Invalid Login!$"
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+  promptUserNameLogIn db "Enter username: $"
+  promptPasswordLogIn db 13,10,"Enter password: $"
 
   promptUsername db 13,10,'Enter username: $'
   promptPassword db 13,10,'Enter password: $'
@@ -156,9 +180,20 @@ userMSG db ' _  _  ____  ____  ____                                           ',
  ; Variables;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                 DB ?
 
-  username db 100, ?, 100 dup(' ');4 registration
-  password  db 100 dup('$');4 registration
-  confirmPass  db 100 dup('$');4 registration
+    ;db 100, ?, 100 dup(' '); 4 user/orig
+    ;db 100 dup('$') ;4 passwords/orig
+    ;db 128, ?, 127 dup(?)
+    ;db 20, 0, 20 dup(0) ; Max length = 20, current length = 0, space for 20 chars
+  logIn_username db 100 dup('$')
+  logIn_password db 100 dup('$')
+
+  stored_username db 100 dup('$')
+  stored_password db 100 dup('$')
+
+
+  username db 100 dup('$');4 registration
+  password db 100 dup('$')
+  confirmPass db 100 dup('$')
 
   logInUsername db 100, ?, 100 dup(' '); 4 login
   logInPassword db 100, ?, 100 dup(' '); 4 login
@@ -176,6 +211,10 @@ userMSG db ' _  _  ____  ____  ____                                           ',
   newFifthItem db 100 dup('$');4 update 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+debug_stored_username_msg db 'Stored Username: $'
+debug_login_username_msg db 13,10,'Login Username: $'
+debug_stored_password_msg db 13,10,'Stored Password: $'
+debug_login_password_msg db 13,10,'Login Password: $'
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -238,10 +277,12 @@ askAccount:
     INT 21H
     
     CMP AL,'Y'
-    JE loopMenu
+    JE userLogInCALL
     CMP AL,'y'
-    JE loopMenu
+    JE userLogInCALL
     CMP AL,'N'
+    JE userRegistrationCALL
+    CMP AL,'n'
     JE userRegistrationCALL
     ; Invalid choice
     MOV DL, 0DH
@@ -297,6 +338,8 @@ askAccount:
 
 userRegistrationCALL:
     CALL userRegistrationFUNCTION
+userLogInCALL:
+    CALL userLogInFUNCTION
 
 loopMenu:
   ; CALL MAIN MENU
@@ -1412,6 +1455,7 @@ askIfAccExists PROC
     ret
 askIfAccExists ENDP     
 
+
 ;;so many bug
 userRegistrationFUNCTION PROC
     ; Ask for username (only once)
@@ -1513,16 +1557,20 @@ confirm_input_done:
     mov byte ptr[si], "$"
 
     ; Compare lengths of both passwords
-    lea si, password           ; point to the first password
-    lea di, confirmPass        ; point to the confirm password
+    lea si, password + 2           ; point to the first password
+    lea di, confirmPass + 2       ; point to the confirm password
     call compare_lengths
     jc passwords_mismatch2     ; Jump to mismatch if lengths differ
 
     ; Compare both passwords
-    lea si, password           ; point to the first password
-    lea di, confirmPass        ; point to the confirm password
+    lea si, password  + 2         ; point to the first password
+    lea di, confirmPass  + 2      ; point to the confirm password
     mov cx, 100                ; maximum characters to compare
     call compare_passwords
+
+    ; If passwords match, store the password in the stored_password variable
+    lea si, password + 2       ; point to the beginning of the password input
+    lea di, stored_password    ; point to stored_password variable
 
     ; If passwords match, proceed to success message
     lea dx, accSucc
@@ -1530,8 +1578,14 @@ confirm_input_done:
     int 21h
 
     ; Exit
-    mov ah, 4Ch
-    int 21h
+    MOV AH, 01h   ; Function to read a character from input
+    INT 21h
+
+    ; Check if Enter (0Dh) was pressed, if not, continue to wait
+    CMP AL, 0Dh
+    CALL CLEAR_SCREEN
+    JMP askAccount   ; If Enter was pressed, go back to ask account
+    JMP $           ; If not, keep waiting
 
 passwords_mismatch2:
     ; Display mismatch message and prompt to re-enter password
@@ -1583,43 +1637,42 @@ clear_confirm_password_buffer endp
 ; Function to compare the lengths of two strings
 compare_lengths proc
     ; Compare lengths of password and confirm password
-    lea si, password
-    lea di, confirmPass
-    xor ax, ax              ; Clear AX (length counter)
+    lea si, password         ; Load address of password
+    lea di, confirmPass      ; Load address of confirm password
+    xor ax, ax               ; Clear AX (password length counter)
 
 compare_length_loop:
     ; Check if the byte at SI (password) is '$' (end of string)
     cmp byte ptr [si], '$'
-    je length_check_done     ; If end of string, stop
+    je length_check_done     ; If end of string, stop counting length
     inc si
     inc ax
     jmp compare_length_loop
 
 length_check_done:
-    ; Store the length of the password in AX
-    mov bx, ax               ; Store password length in BX
+    ; Store the length of the password in BX
+    mov bx, ax
 
-    lea si, confirmPass
-    xor ax, ax               ; Clear AX again (length counter)
+    lea si, confirmPass      ; Reload address of confirmPass
+    xor ax, ax               ; Clear AX (confirm password length counter)
 
 compare_confirm_length_loop:
     ; Check if the byte at SI (confirm password) is '$' (end of string)
     cmp byte ptr [si], '$'
-    je compare_length_done   ; If end of string, stop
+    je compare_length_done   ; If end of string, stop counting length
     inc si
     inc ax
     jmp compare_confirm_length_loop
 
 compare_length_done:
     ; Compare the lengths of password and confirm password
-    cmp ax, bx
+    cmp ax, bx               ; Compare lengths
     je lengths_match         ; If lengths match, continue
-    jc passwords_mismatch2   ; If lengths don't match, jump to mismatch
+    jne passwords_mismatch2  ; If lengths don't match, jump to mismatch
 
 lengths_match:
     ret
 compare_lengths endp
-
 ; Function to compare two passwords
 ;; check if this shit wont work again
 compare_passwords proc
@@ -1634,9 +1687,214 @@ compare_passwords proc
 password_matchs:
     ret
 compare_passwords endp
+userRegistrationFUNCTION ENDP
+
+checkIfEmpty PROC 
+xor dx, dx            ; dx will hold the total length (initialize to 0)
+
+    ; Check firstItem
+    lea si, username + 1 ; Point to the actual input (buffer starts at +1)
+    mov al, [si]          ; Get the length of the string (first byte)
+    add dl, al            ; Add the length to the total sum (stored in DL)
+
+    ; Check secondItem
+    lea si, password + 1 ; Point to the actual input (buffer starts at +1)
+    mov al, [si]           ; Get the length of the string (first byte)
+    add dl, al             ; Add the length to the total sum
+        ; Add the length to the total sum
+
+    ret
+checkIfEmpty ENDP
 
 
+userLogInFUNCTION PROC 
+autobots:
+    CALL CLEAR_SCREEN
+    LEA DX, loginLogo
+    MOV AH, 09H
+    INT 21H
 
+    LEA DX, promptUserNameLogIn
+    MOV AH, 09H
+    INT 21H
+
+    mov ah, 0ah
+    lea dx, logIn_username
+    int 21h
+
+;;;
+    lea di, logIn_username + 2
+    mov bl, logIn_username[1] ; Length of input
+    add di, bx                ; Move to end of input
+    mov al, '$'
+    mov [di], al              ; Append '$'
+
+
+    CALL NEW_LINE
+
+    LEA DX, promptPasswordLogIn
+    MOV AH, 09H
+    INT 21H
+
+ ;   mov ah, 0ah
+  ;  lea dx, logIn_password
+   ; int 21h
+;;;;;;;;;;;;;;;;;;;;
+    lea si, logIn_password + 2      ; buffer to hold the password
+    lea dx, Ast            ; symbol to display *
+
+input_password2:
+    ; get char typed for password
+    mov ah, 7
+    int 21h
+    ; check if the pressed key is Enter (0Dh)
+    cmp al, 0Dh
+    je input_done2          ; if Enter is pressed, stop input
+
+    ; save the typed char in our password buffer
+    mov byte ptr[si], al
+
+    ; Display Asterisk
+    mov ah, 9
+    int 21h                ; display the asterisk (*)
+
+    ; increase buffer pointer
+    inc si
+
+    ; continue the loop for next character
+    jmp input_password2
+;;;;;;;;;;;;;;;;;;;;;
+input_done2:
+    ; Append '$' to password
+    lea di, logIn_password + 2
+    mov bl, logIn_password[1] ; Length of input
+    add di, bx                ; Move to end of input
+    mov al, '$'
+    mov [di], al              ; Append '$'
+
+    ; Compare username
+    lea si, username 
+    lea di, logIn_username 
+    mov cx, 100
+    call compare_credentials
+    jnz invalid_login ; if not equal, jump to failure
+
+
+    ; Compare password
+    lea si, password 
+    lea di, logIn_password + 2
+    mov cx, 100
+    call compare_credentials
+    jnz invalid_login ; if not equal, jump to failure
+
+    ;CALL debug_credentials
+    ; Login successful
+    lea dx, success_msg
+    mov ah, 09h
+    int 21h
+    call waitUserToPressEnter
+invalid_login:
+    ; Login failed
+    lea dx, failure_msg
+    mov ah, 09h
+    int 21h
+
+    MOV AH, 01h   ; Function to read a character from input
+    INT 21h
+
+    ; Check if Enter (0Dh) was pressed, if not, continue to wait
+    CMP AL, 0Dh
+    CALL CLEAR_SCREEN
+    JMP autobots   ; If Enter was pressed, go back to ask account
+    JMP $           ; If not, keep waiting
+
+exittttt:
+    ; Exit program
+    mov ah, 4Ch
+    int 21h
+;;;
+    CALL NEW_LINE
+    CALL NEW_LINE
+    ; press enter 2 continue
+    LEA DX, pressEnter
+    MOV AH, 09H
+    INT 21H
+
+    CALL waitUserToPressEnter
+userLogInFUNCTION ENDP  
+
+compare_credentials proc
+    ; Compare strings pointed by SI and DI
+
+    mov al, [si]             ; Load byte from stored string into AL
+    cmp al, '$'              ; Check for string termination in stored string
+    je credentials_match     ; If end marker, strings match
+    cmp al, [di]             ; Compare with byte from input string
+    jne credentials_mismatch ; If mismatch, jump
+    inc si                   ; Move to next character in stored string
+    inc di                   ; Move to next character in input string
+    loop compare_credentials ; Repeat the loop
+
+credentials_match:
+    xor ax, ax               ; Return 0 for match
+    ret
+credentials_mismatch:
+    mov ax, 1                ; Return 1 for mismatch
+    ret
+compare_credentials endp
+
+
+debug_credentials PROC
+    ; Display stored_username
+    lea dx, debug_stored_username_msg
+    mov ah, 09h
+    int 21h
+    xor bx, bx
+    mov bl, logIn_username[1]
+    mov logIn_username[bx+2], '$'
+    lea dx, logIn_username + 2
+    mov ah, 09h
+    int 21h
+    CALL NEW_LINE
+
+    ; Display login_username
+    lea dx, debug_login_username_msg
+    mov ah, 09h
+    int 21h
+    xor bx, bx
+    mov bl, username[1]
+    mov username[bx+2], '$'
+    lea dx, username + 2
+    mov ah, 09h
+    int 21h
+    CALL NEW_LINE
+
+    ; Display stored_password
+    lea dx, debug_stored_password_msg
+    mov ah, 09h
+    int 21h
+    xor bx, bx
+    mov bl, logIn_password[1]
+    mov logIn_password[bx+2], '$'
+    lea dx, logIn_password + 2
+    mov ah, 09h
+    int 21h
+    CALL NEW_LINE
+
+    ; Display login_password
+    lea dx, debug_login_password_msg
+    mov ah, 09h
+    int 21h
+    xor bx, bx
+    mov bl, password[1]
+    mov password[bx+2], '$'
+    lea dx, password
+    mov ah, 09h
+    int 21h
+    CALL NEW_LINE
+
+    ret
+debug_credentials ENDP
 
 
 displayMenu PROC  
