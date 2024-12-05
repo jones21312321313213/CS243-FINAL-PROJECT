@@ -1,3 +1,7 @@
+;Grocery list inventory management system
+;Programmer name: Joshua D. Arco
+;Date November 22, 2024
+;Description: will store the products into a online inventory system
 .model small
 .stack 100h
 .data
@@ -119,17 +123,37 @@ userMSG db ' _  _  ____  ____  ____                                           ',
     db "                                   *@@@@@@@@@@*                       ", 13, 10
     db "$"
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+smiley db ' ........ ................................ .... ',13,10
+    db '                  ............                   ',13,10
+    db '             .........:::........                ',13,10
+    db '             ...:::::::::::::......              ',13,10
+    db '           ...::::::::::::::.........            ',13,10
+    db '          ..::..::------:::::.........           ',13,10
+    db '          .::..::--==---------:...:::.           ',13,10
+    db '        ..:-:::--=#%%=-----###-::::::...         ',13,10
+    db '        ..------==%@%------*@%=:::::::..         ',13,10
+    db '        .:-==========-------=------:::..         ',13,10
+    db '        .:--=+*=====-------------==-:::.         ',13,10
+    db '        .:--===**=====--------=+*--:::..         ',13,10
+    db '        ..--=====##*+======+*#*=----::..         ',13,10
+    db '..        .-=======+*%@@@%#*+=------:...         ',13,10
+    db '............-===============-------:..           ',13,10
+    db '.............-===============-----:..            ',13,10
+    db '..............:-=============---:..........      ',13,10
+    db '.........::::::::--=========--:................. ',13,10
+    db '.........::::::::::--==+==--:::................. ',13,10
+    db '$'
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   online db ' CITU - Grocery Items Inventory System $'
   programmer db 0ah, ' Programmer: JOSHUA D. ARCO ',13,10,'$'
   date db 0ah, ' Date(Written): NOV. 22, 2024$'
 
-  registerNewCustomers db '1.Register new customers                                 ',13,10,'$';
-  logInCustomers db '2.Log in customers                                             ',13,10,'$';
-  createNewRecord db '3.Create new Inventory                                        ',13,10,'$';
-  updateExistingRecord db '4.Update existing Inventory                                  ',13,10,'$';
-  deleteExistingRecord db '5.Delete existing Inventory                                  ',13,10,'$';
-  viewExistingRecord db '6.View existing Inventory                                      ',13,10,'$';
-  exit db '7.Exit Program                                         ',13,10,'$';
+ 
+  createNewRecord db '1.Create new Inventory                                        ',13,10,'$';
+  updateExistingRecord db '2.Update existing Inventory                                  ',13,10,'$';
+  deleteExistingRecord db '3.Delete existing Inventory                                  ',13,10,'$';
+  viewExistingRecord db '4.View existing Inventory                                      ',13,10,'$';
+  exit db '5.Exit Program                                         ',13,10,'$';
   space db '                      $'
 
   choice db 'Enter your choice: $'
@@ -175,7 +199,7 @@ userMSG db ' _  _  ____  ____  ____                                           ',
   pressBACK DB 'PRESS ANY KEYS TO GO BACK TO MAIN MENU :)$'
   isEmpty DB '           LIST/INVENTORY IS EMPTY! PLEASE ADD SOME$'
   pressEnter2 DB '            PRESS ENTER TO CONTINUE!$',13,10
-  password_mismatch db 'Passwords do not match. Please try again.$', 13, 10, '$'
+  password_mismatch db 13,10,'Passwords do not match. Please try again.$', 13, 10, '$'
   Ast     db "*$"
  ; Variables;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                 DB ?
@@ -215,8 +239,6 @@ debug_stored_username_msg db 'Stored Username: $'
 debug_login_username_msg db 13,10,'Login Username: $'
 debug_stored_password_msg db 13,10,'Stored Password: $'
 debug_login_password_msg db 13,10,'Login Password: $'
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 .code
 main proc
@@ -356,19 +378,16 @@ loopMenu:
   INT 21H
 
   ; Check the user input
+
   CMP AL, '1'
-  JZ registerNewCustomersCALL
-  CMP AL, '2'
-  JZ logInCustomersCALL
-  CMP AL, '3'
   JZ createNewCALL
-  CMP AL, '4'
+  CMP AL, '2'
   JZ updateExistingRecordCALL
-  CMP AL, '5'
+  CMP AL, '3'
   JZ deleteExistingRecordCALL
-  CMP AL, '6'
+  CMP AL, '4'
   JZ viewExistingRecordCALL
-  CMP AL, '7'
+  CMP AL, '5'
   JZ exit_the_programCALL
 
   ; Invalid choice
@@ -406,19 +425,6 @@ loopMenu:
   CALL CLEAR_SCREEN
   JZ loopMenu   ; If Enter was pressed, go back to the menu
   JMP $         ; If not, keep waiting
-
-
-registerNewCustomersCALL:
-  ; Display "Register New Customer" and end the program
-  CALL CLEAR_SCREEN
-  jmp loopMenu
-
-
-logInCustomersCALL:
-  ; Display "Log In Customers" and end the program
-  CALL NEW_LINE
-  MOV AH, 4Ch
-  INT 21h
 
 createNewCALL:  
     CALL CLEAR_SCREEN
@@ -555,6 +561,24 @@ kungEmpty:
     int 21h  ; Print the message
 
     CALL NEW_LINE
+    CALL spacing
+    CALL spacing
+    CALL spacing
+    CALL spacing
+    CALL spacing
+    CALL spacing
+    CALL spacing
+    CALL spacing
+    CALL spacing
+    CALL spacing
+    CALL spacing
+
+
+    mov ah, 09h
+    mov bh, 0
+    mov bl, 0E8h   ; BG,FG
+    mov cx, 41    ; Length
+    int 10h
 
     MOV AH, 09h
     LEA DX, pressBACK
@@ -570,6 +594,14 @@ ifNotEmpty:
     CALL displayITEMS
     CALL NEW_LINE
     CALL NEW_LINE
+
+
+    mov ah, 09h
+    mov bh, 0
+    mov bl, 0D1h   ; BG,FG
+    mov cx, 41   ; Length
+    int 10h
+
 
     MOV AH, 09h
     LEA DX, pressBACK
@@ -609,6 +641,24 @@ ifWala:
     int 21h  ; Print the message
 
     CALL NEW_LINE
+
+    CALL spacing
+    CALL spacing
+    CALL spacing
+    CALL spacing
+    CALL spacing
+    CALL spacing
+    CALL spacing
+    CALL spacing
+    CALL spacing
+    CALL spacing
+    CALL spacing
+
+    mov ah, 09h
+    mov bh, 0
+    mov bl, 094h   ; BG,FG
+    mov cx, 41   ; Length
+    int 10h
 
     MOV AH, 09h
     LEA DX, pressBACK
@@ -718,6 +768,23 @@ ifThyScrollBeBarren:
     int 21h  ; Print the message
 
     CALL NEW_LINE
+    CALL spacing
+    CALL spacing
+    CALL spacing
+    CALL spacing
+    CALL spacing
+    CALL spacing
+    CALL spacing
+    CALL spacing
+    CALL spacing
+    CALL spacing
+    CALL spacing
+
+    mov ah, 09h
+    mov bh, 0
+    mov bl, 0C1h   ; BG,FG
+    mov cx, 41    ; Length
+    int 10h
 
     MOV AH, 09h
     LEA DX, pressBACK
@@ -769,9 +836,8 @@ ifThyScrollBeNotBarren:
     MOV AH, 09H
     INT 21H
     CALL NEW_LINE
-    CALL NEW_LINE
 
-  
+
     MOV AH, 09h
     LEA DX, pressEnter
     INT 21h
@@ -812,10 +878,15 @@ mainMenuCALL:
     ret
 
 exitProgramFunction:
+    CALL CLEAR_SCREEN
     MOV DL, 0DH         ; Carriage return
     MOV AH, 02H         ; Print character
     INT 21H
     MOV DL, 0AH         ; Line feed
+    INT 21H
+
+    LEA DX, smiley      ; Load address of the thank-you message
+    MOV AH, 09H         ; Display string
     INT 21H
 
     LEA DX, thankk      ; Load address of the thank-you message
@@ -902,6 +973,12 @@ END_COPY:
 
     CALL NEW_LINE
 
+    mov ah, 09h
+    mov bh, 0
+    mov bl, 0A7h   ; BG,FG
+    mov cx, 24    ; Length
+    int 10h
+
     LEA DX, pressEnter      
     MOV AH, 09H         ; Display string
     INT 21H
@@ -953,6 +1030,12 @@ END_COPY2:
     mov byte ptr [di], '$'
 
     CALL NEW_LINE
+
+    mov ah, 09h
+    mov bh, 0
+    mov bl, 0A7h   ; BG,FG
+    mov cx, 24    ; Length
+    int 10h
 
     LEA DX, pressEnter      
     MOV AH, 09H         ; Display string
@@ -1006,6 +1089,12 @@ END_COPY3:
 
     CALL NEW_LINE
 
+    mov ah, 09h
+    mov bh, 0
+    mov bl, 0A7h   ; BG,FG
+    mov cx, 24    ; Length
+    int 10h
+
     LEA DX, pressEnter      
     MOV AH, 09H         ; Display string
     INT 21H
@@ -1057,6 +1146,12 @@ END_COPY4:
     mov byte ptr [di], '$'
 
     CALL NEW_LINE
+
+    mov ah, 09h
+    mov bh, 0
+    mov bl, 0A7h   ; BG,FG
+    mov cx, 24    ; Length
+    int 10h
 
     LEA DX, pressEnter      
     MOV AH, 09H         ; Display string
@@ -1110,6 +1205,12 @@ END_COPY5:
 
     CALL NEW_LINE
 
+    mov ah, 09h
+    mov bh, 0
+    mov bl, 0A7h   ; BG,FG
+    mov cx, 24    ; Length
+    int 10h
+    
     LEA DX, pressEnter      
     MOV AH, 09H         ; Display string
     INT 21H
@@ -1136,6 +1237,12 @@ END_CLEAR:
     LEA DX, success      
     MOV AH, 09H         
     INT 21H
+
+    mov ah, 09h
+    mov bh, 0
+    mov bl, 0F4h   ; BG,FG
+    mov cx, 24    ; Length
+    int 10h
 
     LEA DX, pressEnter      
     MOV AH, 09H         ; Display string
@@ -1164,6 +1271,12 @@ END_CLEAR2:
     MOV AH, 09H         
     INT 21H
 
+    mov ah, 09h
+    mov bh, 0
+    mov bl, 0F4h   ; BG,FG
+    mov cx, 24    ; Length
+    int 10h
+
     LEA DX, pressEnter      
     MOV AH, 09H         ; Display string
     INT 21H
@@ -1189,6 +1302,12 @@ END_CLEAR3:
     LEA DX, success      
     MOV AH, 09H         
     INT 21H
+
+    mov ah, 09h
+    mov bh, 0
+    mov bl, 0F4h   ; BG,FG
+    mov cx, 24    ; Length
+    int 10h
 
     LEA DX, pressEnter      
     MOV AH, 09H         ; Display string
@@ -1217,6 +1336,12 @@ END_CLEAR4:
     MOV AH, 09H         
     INT 21H
 
+    mov ah, 09h
+    mov bh, 0
+    mov bl, 0F4h   ; BG,FG
+    mov cx, 24    ; Length
+    int 10h
+
     LEA DX, pressEnter      
     MOV AH, 09H         ; Display string
     INT 21H
@@ -1243,6 +1368,12 @@ END_CLEAR5:
     LEA DX, success      
     MOV AH, 09H         
     INT 21H
+
+    mov ah, 09h
+    mov bh, 0
+    mov bl, 0F4h   ; BG,FG
+    mov cx, 24    ; Length
+    int 10h
 
     LEA DX, pressEnter      
     MOV AH, 09H         ; Display string
@@ -1792,6 +1923,18 @@ input_done2:
     lea dx, success_msg
     mov ah, 09h
     int 21h
+
+    CALL NEW_LINE
+
+    mov ah, 09h
+    mov bh, 0
+    mov bl, 0D0h   ; BG,FG
+    mov cx, 24   ; Length
+    int 10h
+
+    lea dx, pressEnter
+    mov ah, 09h
+    int 21h
     call waitUserToPressEnter
 invalid_login:
     ; Login failed
@@ -1901,36 +2044,12 @@ displayMenu PROC
   ; Display menu options
     CALL NEW_LINE
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-    mov ah, 09h
-    mov bh, 0
-    mov bl, 29h   ; BG,FG
-    mov cx, 50  ; Length
-    int 10h
 
-
-    mov ah, 09h
-    lea dx, registerNewCustomers
-    int 21h
-    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     mov ah, 09h
     mov bh, 0
-    mov bl, 29h   ; BG,FG
-    mov cx, 50  ; Length
-    int 10h
-
-
-    mov ah, 09h
-    lea dx, logInCustomers
-    int 21h
-
-    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;.
-
-    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-    mov ah, 09h
-    mov bh, 0
-    mov bl, 29h   ; BG,FG
+    mov bl, 34h   ; BG,FG
     mov cx, 50  ; Length
     int 10h
 
@@ -1956,7 +2075,7 @@ displayMenu PROC
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     mov ah, 09h
     mov bh, 0
-    mov bl, 29h   ; BG,FG
+    mov bl, 6Bh   ; BG,FG
     mov cx, 50  ; Length
     int 10h
 
@@ -1967,7 +2086,7 @@ displayMenu PROC
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     mov ah, 09h
     mov bh, 0
-    mov bl, 29h   ; BG,FG
+    mov bl, 14h   ; BG,FG
     mov cx, 50  ; Length
     int 10h
 
@@ -1977,7 +2096,7 @@ displayMenu PROC
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     mov ah, 09h
     mov bh, 0
-    mov bl, 29h   ; BG,FG
+    mov bl, 3Ch   ; BG,FG
     mov cx, 50  ; Length
     int 10h
 
